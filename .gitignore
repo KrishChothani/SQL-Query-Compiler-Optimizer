@@ -1,0 +1,47 @@
+# ==============================================================================
+# .gitignore — SQL Query Compiler & Optimizer (sqlc) & Web Application
+# ==============================================================================
+
+# --- C Compiler Build Artifacts ---
+build/
+sqlc
+*.o
+*.a
+*.so
+*.out
+*.d
+*.tab.c
+*.tab.h
+lex.yy.c
+bison.output
+
+# --- Webapp Dynamic Runtime Data ---
+webapp/workspaces/
+workspaces/
+*.log
+cookies.txt
+
+# --- Python & Pytest Cache ---
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+.mypy_cache/
+
+# --- Virtual Environments ---
+venv/
+.venv/
+env/
+.env
+
+# --- OS & Editor Metadata ---
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.idea/

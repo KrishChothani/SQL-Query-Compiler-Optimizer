@@ -1,0 +1,159 @@
+/* style.css — Modern aesthetics for SQL Compiler & Optimizer */
+
+:root {
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+body {
+    font-family: var(--font-sans);
+    letter-spacing: -0.01em;
+    min-height: 100vh;
+}
+
+/* Monospace text */
+.font-monospace {
+    font-family: var(--font-mono) !important;
+}
+
+/* Navbar Brand Icon */
+.brand-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: rgba(13, 110, 253, 0.15);
+    border-radius: 8px;
+}
+
+/* CodeMirror customization */
+.CodeMirror {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    height: 175px !important;
+    border-radius: 0;
+    line-height: 1.5;
+}
+
+.CodeMirror-gutters {
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
+    background-color: transparent;
+}
+
+/* Plain textarea fallback if CodeMirror fails */
+#sql-query-editor {
+    resize: vertical;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Tree-view formatting */
+.tree-view {
+    line-height: 1.45;
+    white-space: pre;
+    tab-size: 2;
+    color: #e0e6ed;
+    background-color: #161b22 !important;
+}
+
+[data-bs-theme="light"] .tree-view {
+    color: #24292f;
+    background-color: #f6f8fa !important;
+}
+
+/* NULL value badge */
+.badge-null {
+    display: inline-block;
+    padding: 0.1em 0.45em;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-style: italic;
+    color: #8b949e;
+    background-color: rgba(139, 148, 158, 0.18);
+    border-radius: 4px;
+    border: 1px dashed rgba(139, 148, 158, 0.4);
+}
+
+[data-bs-theme="light"] .badge-null {
+    color: #6e7781;
+    background-color: #eaeef2;
+    border-color: #d0d7de;
+}
+
+/* Tables Accordion */
+.accordion-button {
+    font-size: 0.875rem;
+    padding: 0.6rem 0.75rem;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: rgba(13, 110, 253, 0.08);
+}
+
+.accordion-body {
+    padding: 0.5rem 0.75rem;
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+[data-bs-theme="light"] .accordion-body {
+    background-color: #f8f9fa;
+}
+
+/* Type Pill Badges */
+.badge-type-int {
+    background-color: rgba(13, 202, 240, 0.2);
+    color: #0dcaf0;
+    border: 1px solid rgba(13, 202, 240, 0.3);
+}
+
+.badge-type-float {
+    background-color: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.badge-type-string {
+    background-color: rgba(25, 135, 84, 0.2);
+    color: #198754;
+    border: 1px solid rgba(25, 135, 84, 0.3);
+}
+
+.badge-type-bool {
+    background-color: rgba(214, 51, 132, 0.2);
+    color: #d63384;
+    border: 1px solid rgba(214, 51, 132, 0.3);
+}
+
+/* Error Highlight in Editor */
+.cm-error-line {
+    background-color: rgba(220, 53, 69, 0.2) !important;
+}
+
+/* Button micro-interactions */
+.btn {
+    transition: all 0.15s ease-in-out;
+}
+
+.btn:active {
+    transform: scale(0.98);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(128, 128, 128, 0.3);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(128, 128, 128, 0.5);
+}

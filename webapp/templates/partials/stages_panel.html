@@ -1,0 +1,220 @@
+<!-- Query Execution & Multi-Stage Output Panel -->
+<div class="card shadow-sm border-secondary-subtle">
+    <!-- Card Header: Stage Navigation Tabs & Controls -->
+    <div class="card-header bg-body-tertiary p-2 d-flex flex-wrap align-items-center justify-content-between gap-2">
+        <ul class="nav nav-pills nav-sm" id="output-stage-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active py-1 px-3 fw-medium" id="tab-result" data-bs-toggle="pill" data-bs-target="#stage-result" type="button" role="tab">
+                    <i class="bi bi-table me-1"></i> Result
+                    <span class="badge bg-primary-subtle text-primary ms-1 d-none" id="result-count-badge">0</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link py-1 px-3 fw-medium" id="tab-tokens" data-bs-toggle="pill" data-bs-target="#stage-tokens" type="button" role="tab">
+                    <i class="bi bi-braces me-1"></i> Tokens
+                    <span class="badge bg-secondary ms-1 d-none" id="tokens-count-badge">0</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link py-1 px-3 fw-medium" id="tab-ast" data-bs-toggle="pill" data-bs-target="#stage-ast" type="button" role="tab">
+                    <i class="bi bi-diagram-3 me-1"></i> AST
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link py-1 px-3 fw-medium" id="tab-plan" data-bs-toggle="pill" data-bs-target="#stage-plan" type="button" role="tab">
+                    <i class="bi bi-diagram-2 me-1"></i> Logical Plan
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link py-1 px-3 fw-medium" id="tab-opt-plan" data-bs-toggle="pill" data-bs-target="#stage-opt-plan" type="button" role="tab">
+                    <i class="bi bi-lightning-charge me-1"></i> Optimized Plan
+                    <span class="badge bg-success ms-1 d-none" id="rules-count-badge">0</span>
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link py-1 px-3 fw-medium" id="tab-compare" data-bs-toggle="pill" data-bs-target="#stage-compare" type="button" role="tab">
+                    <i class="bi bi-arrow-left-right me-1"></i> Compare
+                    <span class="badge bg-info text-dark ms-1 d-none" id="reduction-badge">0%</span>
+                </button>
+            </li>
+        </ul>
+
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge bg-body border border-secondary-subtle text-muted fw-normal" id="execution-time-badge">
+                <i class="bi bi-stopwatch me-1"></i>0.00 ms
+            </span>
+            <button class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1" id="btn-download-csv" title="Download query result as CSV" disabled>
+                <i class="bi bi-download"></i>
+                <span class="d-none d-sm-inline">Export CSV</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Error Alert Panel (Hidden by default) -->
+    <div id="error-panel" class="alert alert-danger m-3 mb-0 d-none" role="alert">
+        <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-exclamation-triangle-fill fs-5 mt-1 text-danger"></i>
+            <div class="flex-grow-1">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <span class="badge bg-danger text-uppercase fw-bold" id="error-category-badge">Error</span>
+                    <span class="fw-semibold text-danger" id="error-title">Query Error Detected</span>
+                    <span class="badge bg-dark-subtle text-body border small ms-auto" id="error-location-badge">Line 1, Col 1</span>
+                </div>
+                <div class="font-monospace small text-break" id="error-message-text"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Multi-Stage Output Content -->
+    <div class="card-body p-3">
+        <div class="tab-content" id="output-stage-content">
+            <!-- 1. Result Tab -->
+            <div class="tab-pane fade show active" id="stage-result" role="tabpanel">
+                <div id="result-meta-notice" class="d-flex justify-content-between align-items-center mb-2 text-muted small d-none">
+                    <span id="result-status-text">Returned 0 rows in 0.00 ms</span>
+                    <span class="text-warning fw-medium d-none" id="result-truncated-notice">
+                        <i class="bi bi-info-circle me-1"></i>Showing first 500 of <span id="result-total-rows">0</span> rows
+                    </span>
+                </div>
+
+                <div class="table-responsive border rounded" style="max-height: 480px; overflow-y: auto;" id="result-table-container">
+                    <table class="table table-sm table-striped table-hover mb-0 font-monospace small" id="query-result-table">
+                        <thead class="table-light sticky-top" id="result-table-thead">
+                            <tr><th class="text-muted">No query executed yet</th></tr>
+                        </thead>
+                        <tbody id="result-table-tbody">
+                            <tr><td class="text-muted text-center py-5">Write a SQL query above and click "Run Query" (or press Ctrl+Enter).</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 2. Tokens Tab -->
+            <div class="tab-pane fade" id="stage-tokens" role="tabpanel">
+                <div class="table-responsive border rounded" style="max-height: 480px; overflow-y: auto;">
+                    <table class="table table-sm table-striped mb-0 font-monospace small" id="tokens-table">
+                        <thead class="table-light sticky-top">
+                            <tr>
+                                <th style="width: 35%;">TOKEN_TYPE</th>
+                                <th style="width: 45%;">LEXEME</th>
+                                <th style="width: 20%;">LINE:COL</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tokens-table-tbody">
+                            <tr><td colspan="3" class="text-muted text-center py-4">No tokens collected. Run with Mode 'Tokens' or 'Verbose'.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 3. AST Tab -->
+            <div class="tab-pane fade" id="stage-ast" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="small text-muted fw-semibold">Abstract Syntax Tree (Bison Parser):</span>
+                    <button class="btn btn-xs btn-outline-secondary py-0 px-2" id="btn-copy-ast" title="Copy AST">
+                        <i class="bi bi-clipboard"></i> Copy
+                    </button>
+                </div>
+                <pre class="bg-body-tertiary border rounded p-3 font-monospace small mb-0 tree-view" id="ast-pre" style="max-height: 460px; overflow-y: auto;">No AST available. Run with Mode 'AST' or 'Verbose'.</pre>
+            </div>
+
+            <!-- 4. Logical Plan Tab -->
+            <div class="tab-pane fade" id="stage-plan" role="tabpanel">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="small text-muted fw-semibold">Relational Algebra Tree (Before Optimization):</span>
+                    <button class="btn btn-xs btn-outline-secondary py-0 px-2" id="btn-copy-plan" title="Copy Plan">
+                        <i class="bi bi-clipboard"></i> Copy
+                    </button>
+                </div>
+                <pre class="bg-body-tertiary border rounded p-3 font-monospace small mb-0 tree-view" id="plan-pre" style="max-height: 460px; overflow-y: auto;">No logical plan available. Run with Mode 'Plan' or 'Verbose'.</pre>
+            </div>
+
+            <!-- 5. Optimized Plan Tab -->
+            <div class="tab-pane fade" id="stage-opt-plan" role="tabpanel">
+                <div class="mb-3">
+                    <div class="small text-muted fw-semibold mb-1">Optimizer Rules Fired (In Order):</div>
+                    <div id="rules-fired-list" class="d-flex flex-wrap gap-1">
+                        <span class="badge bg-secondary-subtle text-muted">None fired</span>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="small text-muted fw-semibold">Rewritten Optimized Relational Algebra Tree:</span>
+                    <button class="btn btn-xs btn-outline-secondary py-0 px-2" id="btn-copy-opt-plan" title="Copy Optimized Plan">
+                        <i class="bi bi-clipboard"></i> Copy
+                    </button>
+                </div>
+                <pre class="bg-body-tertiary border rounded p-3 font-monospace small mb-0 tree-view" id="opt-plan-pre" style="max-height: 380px; overflow-y: auto;">No optimized plan available. Run with Mode 'Verbose' or 'Compare'.</pre>
+            </div>
+
+            <!-- 6. Compare Tab -->
+            <div class="tab-pane fade" id="stage-compare" role="tabpanel">
+                <div class="alert alert-info py-2 mb-3 d-flex align-items-center justify-content-between" id="compare-summary-bar">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-speedometer2 fs-5"></i>
+                        <span><strong>Optimizer Efficiency:</strong> <span id="compare-reduction-text">Run query in Compare mode to see metrics.</span></span>
+                    </div>
+                    <span class="badge bg-primary fs-6 px-3 py-2" id="compare-reduction-badge">0% Reduction</span>
+                </div>
+
+                <div class="row g-3">
+                    <!-- Unoptimized Column -->
+                    <div class="col-md-6">
+                        <div class="card h-100 border-warning-subtle">
+                            <div class="card-header bg-warning-subtle py-1 fw-bold text-warning-emphasis d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-exclamation-circle me-1"></i> UNOPTIMIZED PLAN</span>
+                                <span class="badge bg-warning text-dark font-monospace" id="unopt-time-badge">0.00 ms</span>
+                            </div>
+                            <div class="card-body p-2">
+                                <div class="small text-muted mb-1">Plan Structure:</div>
+                                <pre class="bg-body-tertiary border rounded p-2 font-monospace small mb-2 tree-view" id="compare-unopt-plan" style="max-height: 200px; overflow-y: auto;">--</pre>
+
+                                <div class="small text-muted mb-1">Operator Execution Statistics:</div>
+                                <div class="table-responsive border rounded" style="max-height: 160px; overflow-y: auto;">
+                                    <table class="table table-sm table-striped mb-0 font-monospace small">
+                                        <thead><tr><th>Operator</th><th>Rows In</th><th>Rows Out</th></tr></thead>
+                                        <tbody id="compare-unopt-stats"><tr><td colspan="3" class="text-muted text-center">No data</td></tr></tbody>
+                                    </table>
+                                </div>
+                                <div class="mt-2 text-end small">
+                                    <span class="text-muted">Total Rows Processed: </span>
+                                    <strong id="unopt-rows-proc" class="font-monospace">0</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Optimized Column -->
+                    <div class="col-md-6">
+                        <div class="card h-100 border-success-subtle">
+                            <div class="card-header bg-success-subtle py-1 fw-bold text-success-emphasis d-flex justify-content-between align-items-center">
+                                <span><i class="bi bi-check-circle me-1"></i> OPTIMIZED PLAN</span>
+                                <span class="badge bg-success font-monospace" id="opt-time-badge">0.00 ms</span>
+                            </div>
+                            <div class="card-body p-2">
+                                <div class="small text-muted mb-1">Plan Structure:</div>
+                                <pre class="bg-body-tertiary border rounded p-2 font-monospace small mb-2 tree-view" id="compare-opt-plan" style="max-height: 200px; overflow-y: auto;">--</pre>
+
+                                <div class="small text-muted mb-1">Rules Fired:</div>
+                                <div id="compare-opt-rules" class="d-flex flex-wrap gap-1 mb-2">
+                                    <span class="badge bg-secondary-subtle text-muted">None</span>
+                                </div>
+
+                                <div class="small text-muted mb-1">Operator Execution Statistics:</div>
+                                <div class="table-responsive border rounded" style="max-height: 120px; overflow-y: auto;">
+                                    <table class="table table-sm table-striped mb-0 font-monospace small">
+                                        <thead><tr><th>Operator</th><th>Rows In</th><th>Rows Out</th></tr></thead>
+                                        <tbody id="compare-opt-stats"><tr><td colspan="3" class="text-muted text-center">No data</td></tr></tbody>
+                                    </table>
+                                </div>
+                                <div class="mt-2 text-end small">
+                                    <span class="text-muted">Total Rows Processed: </span>
+                                    <strong id="opt-rows-proc" class="text-success font-monospace">0</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

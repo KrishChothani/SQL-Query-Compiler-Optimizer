@@ -1,0 +1,192 @@
+<!-- Tables Sidebar Panel -->
+<div class="card h-100 shadow-sm border-secondary-subtle">
+    <div class="card-header bg-body-tertiary d-flex align-items-center justify-content-between py-2">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-table text-primary"></i>
+            <span class="fw-semibold">Tables</span>
+            <span class="badge bg-secondary rounded-pill" id="table-count-badge">0</span>
+        </div>
+        <div class="d-flex gap-1">
+            <button class="btn btn-sm btn-outline-primary" id="btn-refresh-tables" title="Refresh table list">
+                <i class="bi bi-arrow-repeat"></i>
+            </button>
+            <button class="btn btn-sm btn-primary d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#modal-add-table">
+                <i class="bi bi-plus-lg"></i>
+                <span>Add Table</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Table Search & List Body -->
+    <div class="card-body p-2 d-flex flex-column" style="max-height: calc(100vh - 160px); overflow-y: auto;">
+        <div class="input-group input-group-sm mb-2">
+            <span class="input-group-text bg-body border-secondary-subtle"><i class="bi bi-search"></i></span>
+            <input type="text" id="table-search-input" class="form-control form-control-sm border-secondary-subtle" placeholder="Filter tables...">
+        </div>
+
+        <div id="tables-loading-spinner" class="text-center py-4 d-none">
+            <div class="spinner-border spinner-border-sm text-primary" role="status"></div>
+            <div class="small text-muted mt-1">Loading tables...</div>
+        </div>
+
+        <!-- Accordion of Tables -->
+        <div class="accordion accordion-flush flex-grow-1" id="tables-accordion">
+            <!-- Dynamically populated by app.js -->
+        </div>
+
+        <div id="no-tables-msg" class="text-center text-muted py-4 d-none">
+            <i class="bi bi-inbox fs-3 d-block mb-1"></i>
+            <span>No tables found in workspace.</span>
+        </div>
+    </div>
+
+    <div class="card-footer bg-body-tertiary p-2 text-center">
+        <button class="btn btn-sm btn-link text-decoration-none text-muted p-0" id="btn-reset-workspace-sidebar">
+            <i class="bi bi-arrow-counterclockwise me-1"></i>Reset to sample data
+        </button>
+    </div>
+</div>
+
+<!-- Modal: Add Table (Upload CSV or Manual Creation) -->
+<div class="modal fade" id="modal-add-table" tabindex="-1" aria-labelledby="modalAddTableLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header py-2">
+                <h5 class="modal-title fs-6 fw-bold" id="modalAddTableLabel">
+                    <i class="bi bi-plus-circle me-1 text-primary"></i> Add New Table
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3">
+                <!-- Nav Tabs for Upload vs Manual -->
+                <ul class="nav nav-tabs nav-fill mb-3" id="addTableTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active fw-medium" id="tab-upload-csv" data-bs-toggle="tab" data-bs-target="#panel-upload-csv" type="button" role="tab">
+                            <i class="bi bi-file-earmark-arrow-up me-1"></i> (a) Upload CSV File
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-medium" id="tab-create-manual" data-bs-toggle="tab" data-bs-target="#panel-create-manual" type="button" role="tab">
+                            <i class="bi bi-pencil-square me-1"></i> (b) Create Manually
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="addTableTabContent">
+                    <!-- Tab (a): Upload CSV -->
+                    <div class="tab-pane fade show active" id="panel-upload-csv" role="tabpanel">
+                        <form id="form-upload-csv" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="upload-table-name" class="form-label fw-medium small">Table Name</label>
+                                <input type="text" class="form-control form-control-sm" id="upload-table-name" placeholder="e.g. professors" required>
+                                <div class="form-text small">Must start with a letter/underscore and contain only letters, numbers, and underscores (^[A-Za-z_][A-Za-z0-9_]*$).</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="upload-csv-file" class="form-label fw-medium small">Select CSV File</label>
+                                <input class="form-control form-control-sm" type="file" id="upload-csv-file" accept=".csv" required>
+                                <div class="form-text small">Header row required. Max 20 columns, max 10,000 rows, max 5 MB.</div>
+                            </div>
+                            <div id="upload-error-alert" class="alert alert-danger d-none py-2 small" role="alert"></div>
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-sm btn-primary d-flex align-items-center gap-1" id="btn-submit-upload">
+                                    <span class="spinner-border spinner-border-sm d-none" id="upload-spinner" role="status"></span>
+                                    <span>Upload & Register Table</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Tab (b): Create Manually -->
+                    <div class="tab-pane fade" id="panel-create-manual" role="tabpanel">
+                        <form id="form-create-manual">
+                            <div class="mb-3">
+                                <label for="manual-table-name" class="form-label fw-medium small">Table Name</label>
+                                <input type="text" class="form-control form-control-sm" id="manual-table-name" placeholder="e.g. employees" required>
+                                <div class="form-text small">^[A-Za-z_][A-Za-z0-9_]*$</div>
+                            </div>
+
+                            <!-- Dynamic Column Builder -->
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label class="form-label fw-medium small mb-0">Columns Definition (Max 20)</label>
+                                    <button type="button" class="btn btn-xs btn-outline-primary py-0 px-2" id="btn-add-col-row">
+                                        <i class="bi bi-plus"></i> Add Column
+                                    </button>
+                                </div>
+                                <div id="column-builder-container" class="border rounded p-2 bg-body-tertiary">
+                                    <!-- Dynamic rows inserted here -->
+                                </div>
+                            </div>
+
+                            <!-- Row Data Input -->
+                            <div class="mb-3">
+                                <label for="manual-rows-textarea" class="form-label fw-medium small">Rows Data (Comma-separated, one per line)</label>
+                                <textarea class="form-control form-control-sm font-monospace" id="manual-rows-textarea" rows="4" placeholder="101, Alice, 75000&#10;102, Bob, 82000"></textarea>
+                                <div class="form-text small">Do not include header row. Each line represents one data row.</div>
+                            </div>
+
+                            <!-- Live Preview -->
+                            <div class="mb-3">
+                                <div class="fw-medium small mb-1">Live Table Preview</div>
+                                <div class="table-responsive border rounded bg-body p-1" style="max-height: 140px; overflow-y: auto;">
+                                    <table class="table table-sm table-bordered table-striped mb-0 font-monospace small" id="manual-live-preview-table">
+                                        <thead><tr id="manual-preview-thead"></tr></thead>
+                                        <tbody id="manual-preview-tbody">
+                                            <tr><td class="text-muted text-center py-2" colspan="100%">Define columns and rows above to see live preview.</td></tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <div id="manual-error-alert" class="alert alert-danger d-none py-2 small" role="alert"></div>
+
+                            <div class="d-flex justify-content-end gap-2">
+                                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-sm btn-primary d-flex align-items-center gap-1" id="btn-submit-manual">
+                                    <span class="spinner-border spinner-border-sm d-none" id="manual-spinner" role="status"></span>
+                                    <span>Create Table</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Table Schema & Preview -->
+<div class="modal fade" id="modal-table-preview" tabindex="-1" aria-labelledby="modalPreviewLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header py-2">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-table text-primary"></i>
+                    <h5 class="modal-title fs-6 fw-bold" id="preview-modal-title">Table Preview</h5>
+                    <span class="badge bg-secondary" id="preview-modal-row-count">0 rows</span>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-3">
+                <div class="mb-3">
+                    <span class="fw-semibold small text-muted d-block mb-1">Schema Definition:</span>
+                    <div id="preview-schema-badges" class="d-flex flex-wrap gap-1"></div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="fw-semibold small text-muted">First 20 Rows Preview:</span>
+                    <span class="small text-muted" id="preview-showing-notice">Showing 0 rows</span>
+                </div>
+                <div class="table-responsive border rounded" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-sm table-striped table-hover mb-0 font-monospace small" id="preview-table-content">
+                        <thead class="table-light sticky-top" id="preview-table-thead"></thead>
+                        <tbody id="preview-table-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer py-2">
+                <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
